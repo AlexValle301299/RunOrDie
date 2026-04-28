@@ -7,6 +7,8 @@ class Player {
     this.h = 60;
     this.x = 100;
     this.y = ctx.canvas.height / 2;
+    this.image = new Image();
+    this.image.src = 'images/sonic.png';
 
     // Física
     this.vy = 0;         // velocidad vertical
@@ -20,8 +22,12 @@ class Player {
   }
 
   draw() {
-    this.ctx.fillStyle = '#e94560';
-    this.ctx.fillRect(this.x, this.y, this.w, this.h);
+    if (this.image.complete && this.image.naturalWidth > 0) {
+      this.ctx.drawImage(this.image, this.x, this.y, this.w, this.h);
+    } else {
+      this.ctx.fillStyle = '#e94560';
+      this.ctx.fillRect(this.x, this.y, this.w, this.h);
+    }
 
     // Llama si jetpack activo: dibujar "fuego"
     if (this.isThrusting) {
