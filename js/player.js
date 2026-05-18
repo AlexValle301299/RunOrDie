@@ -1,67 +1,69 @@
 class Player {
   constructor(ctx) {
     this.ctx = ctx;
-
-    // Posición y tamaño
-    this.w = 50;
-    this.h = 60;
-    this.x = 100;
-    this.y = ctx.canvas.height / 2;
+    this.w = 40;
+    this.h = 55;
+    this.x = 80;
+    this.groundY = this.ctx.canvas.height - 50 - this.h;
+    this.y = this.groundY;
+    this.vy = 0;
+    this.gravity = 0.5;
+    this.flyPower = -1;
+    this.maxFallSpeed = 7;
+    this.maxFlySpeed = -7;
+    this.frame = 0;
+    this.imageLoaded = false;
     this.image = new Image();
-    this.image.src = 'images/sonic.png';
 
-    // Física
-    this.vy = 0;         // velocidad vertical
-    this.gravity = 0.5;  // gravedad (Bonus: Advanced Animations)
-    this.lift = -0.8;    // fuerza del jetpack (contrarresta gravedad)
-    this.isThrusting = false;
+    this.image.onload = () => {
+      this.imageLoaded = true;
+    };
 
-    // Límites del canvas
-    this.groundY = ctx.canvas.height - this.h;
-    this.ceilY = 0;
+    this.image.src = 'images/robot.svg';
   }
 
-  draw() {
-    if (this.image.complete && this.image.naturalWidth > 0) {
-      this.ctx.drawImage(this.image, this.x, this.y, this.w, this.h);
-    } else {
-      this.ctx.fillStyle = '#e94560';
-      this.ctx.fillRect(this.x, this.y, this.w, this.h);
+  update(keys) {
+    if (keys.Space || keys.ArrowUp) {
+      this.vy += this.flyPower;
     }
 
-    // Llama si jetpack activo: dibujar "fuego"
-    if (this.isThrusting) {
-      this.ctx.fillStyle = '#f5a623';
-      this.ctx.fillRect(this.x - 15, this.y + 20, 15, 20);
-    }
-  }
-
-  move() {
-    // Aplicar gravedad siempre
     this.vy += this.gravity;
 
-    // Aplicar fuerza del jetpack si está activo
-    if (this.isThrusting) {
-      this.vy += this.lift;
+    if (this.vy > this.maxFallSpeed) {
+      this.vy = this.maxFallSpeed;
     }
 
-    // Actualizar posición vertical
+    if (this.vy < this.maxFlySpeed) {
+      this.vy = this.maxFlySpeed;
+    }
+
     this.y += this.vy;
 
-    // Límite inferior (suelo)
     if (this.y >= this.groundY) {
       this.y = this.groundY;
       this.vy = 0;
     }
 
-    // Límite superior (techo)
-    if (this.y <= this.ceilY) {
-      this.y = this.ceilY;
+    if (this.y <= 20) {
+      this.y = 20;
       this.vy = 0;
     }
+
+    this.frame++;
   }
 
-  // AABB collision detection (Día 3)
+  draw() {
+    const ctx = this.ctx;
+
+    if (this.imageLoaded) {
+      ctx.drawImage(this.image, this.x, this.y, this.w, this.h);
+      return;
+    }
+
+    ctx.fillStyle = '#457b9d';
+    ctx.fillRect(this.x, this.y, this.w, this.h);
+  }
+
   collidesWith(element) {
     return (
       this.x < element.x + element.w &&

@@ -3,74 +3,70 @@ class UI {
     this.ctx = ctx;
   }
 
-  // Dibuja la puntuación en pantalla (Bonus: Drawing Text & Styles)
-  drawScore(score) {
-    const ctx = this.ctx;
-
-    ctx.save(); // (Bonus: Transformations & Compositing)
-
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-    ctx.fillRect(10, 10, 160, 40);
-
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 18px Arial';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`Monedas: ${score}`, 20, 31);
-
-    ctx.restore();
+  drawScore(score, distance) {
+    this.ctx.fillStyle = '#222222';
+    this.ctx.font = '20px Arial';
+    this.ctx.textAlign = 'left';
+    this.ctx.fillText('Monedas: ' + score, 20, 30);
+    this.ctx.fillText('Distancia: ' + distance + ' m', 20, 58);
   }
 
-  // Dibuja la distancia recorrida
-  drawDistance(distance) {
-    const ctx = this.ctx;
+  drawStartMenu() {
+    const canvas = this.ctx.canvas;
 
-    ctx.save();
+    this.ctx.fillStyle = '#bde0fe';
+    this.ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-    ctx.fillRect(ctx.canvas.width - 170, 10, 160, 40);
+    this.ctx.fillStyle = '#222222';
+    this.ctx.font = '40px Arial';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('Run Or Die', canvas.width / 2, 150);
 
-    ctx.fillStyle = '#f5a623';
-    ctx.font = 'bold 18px Arial';
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(`${distance}m`, ctx.canvas.width - 20, 31);
-
-    ctx.restore();
+    this.ctx.font = '22px Arial';
+    this.ctx.fillText('Pulsa ESPACIO para empezar', canvas.width / 2, 210);
+    this.ctx.fillText('Manten ESPACIO para volar', canvas.width / 2, 245);
+    this.ctx.fillText('Pulsa M para pausar', canvas.width / 2, 280);
   }
 
-  // Pantalla de Game Over (Día 3: stop game)
+  drawPauseMenu() {
+    const canvas = this.ctx.canvas;
+
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    this.ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    this.ctx.fillStyle = '#222222';
+    this.ctx.font = '42px Arial';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('Pausa', canvas.width / 2, 150);
+
+    this.ctx.font = '22px Arial';
+    this.ctx.fillText('Pulsa M para continuar', canvas.width / 2, 215);
+    this.ctx.fillText('Pulsa S para salir al menu', canvas.width / 2, 250);
+  }
+
+  drawPauseText() {
+    const canvas = this.ctx.canvas;
+
+    this.ctx.fillStyle = '#222222';
+    this.ctx.font = '18px Arial';
+    this.ctx.textAlign = 'right';
+    this.ctx.fillText('Pulsa M para pausar', canvas.width - 20, 30);
+  }
+
   drawGameOver(score, distance) {
-    const ctx = this.ctx;
-    const w = ctx.canvas.width;
-    const h = ctx.canvas.height;
+    const canvas = this.ctx.canvas;
 
-    ctx.save();
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    this.ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Fondo semitransparente (Bonus: globalAlpha)
-    ctx.globalAlpha = 0.75;
-    ctx.fillStyle = '#1a1a2e';
-    ctx.fillRect(0, 0, w, h);
-    ctx.globalAlpha = 1;
+    this.ctx.fillStyle = '#222222';
+    this.ctx.font = '42px Arial';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('Game Over', canvas.width / 2, 140);
 
-    // Título GAME OVER
-    ctx.fillStyle = '#e94560';
-    ctx.font = 'bold 56px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('GAME OVER', w / 2, h / 2 - 60);
-
-    // Estadísticas
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '24px Arial';
-    ctx.fillText(`Monedas recogidas: ${score}`, w / 2, h / 2);
-    ctx.fillText(`Distancia: ${distance}m`, w / 2, h / 2 + 40);
-
-    // Instrucción para reiniciar
-    ctx.fillStyle = '#f5a623';
-    ctx.font = '20px Arial';
-    ctx.fillText('Pulsa ESPACIO para reiniciar', w / 2, h / 2 + 100);
-
-    ctx.restore();
+    this.ctx.font = '22px Arial';
+    this.ctx.fillText('Monedas: ' + score, canvas.width / 2, 200);
+    this.ctx.fillText('Distancia: ' + distance + ' m', canvas.width / 2, 235);
+    this.ctx.fillText('Pulsa ESPACIO para reiniciar', canvas.width / 2, 295);
   }
 }

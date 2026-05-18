@@ -1,49 +1,32 @@
 class Coin {
   constructor(ctx) {
     this.ctx = ctx;
-
-    this.radius = 12;
-
-    // Aparece en el borde derecho a altura aleatoria (Día 3: Coin class)
-    this.x = ctx.canvas.width + this.radius;
-    this.y = 60 + Math.random() * (ctx.canvas.height - 120);
-
-    this.vx = -4; // misma velocidad que los obstáculos
-
+    this.w = 24;
+    this.h = 24;
+    this.x = this.ctx.canvas.width;
+    this.y = 90 + Math.random() * 190;
     this.collected = false;
-    this.color = '#f5a623';
+  }
+
+  update(speed) {
+    this.x -= speed;
   }
 
   draw() {
-    if (this.collected) return;
+    if (this.collected) {
+      return;
+    }
 
-    const ctx = this.ctx;
+    this.ctx.fillStyle = '#f4c430';
+    this.ctx.beginPath();
+    this.ctx.arc(this.x + 12, this.y + 12, 12, 0, Math.PI * 2);
+    this.ctx.fill();
 
-    // Círculo exterior (Día 1: arc)
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    ctx.fillStyle = this.color;
-    ctx.fill();
-    ctx.strokeStyle = '#ffcc00';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.closePath();
-
-    // Símbolo "$" encima (Bonus: Drawing Text & Styles)
-    ctx.fillStyle = '#1a1a2e';
-    ctx.font = 'bold 12px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('$', this.x, this.y);
+    this.ctx.strokeStyle = '#222222';
+    this.ctx.stroke();
   }
 
-  move() {
-    if (this.collected) return;
-    this.x += this.vx;
-  }
-
-  // Limpieza de memoria (Día 3)
   isOutOfScreen() {
-    return this.x + this.radius < 0;
+    return this.x + this.w < 0;
   }
 }

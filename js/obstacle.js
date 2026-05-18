@@ -1,35 +1,28 @@
 class Obstacle {
   constructor(ctx) {
     this.ctx = ctx;
+    this.w = 35;
+    this.h = 35 + Math.random() * 40;
+    this.x = this.ctx.canvas.width;
 
-    // Tamaño aleatorio para variedad
-    this.w = 30 + Math.random() * 20;
-    this.h = 40 + Math.random() * 60;
+    const groundY = this.ctx.canvas.height - 50;
 
-    // Aparece en el borde derecho (Día 3: Enemy class)
-    this.x = ctx.canvas.width;
+    if (Math.random() < 0.4) {
+      this.y = groundY - this.h;
+    } else {
+      this.y = 80 + Math.random() * (groundY - this.h - 100);
+    }
+  }
 
-    // Posición vertical: en el suelo
-    this.y = ctx.canvas.height - this.h - 20; // -20 por el suelo
-
-    this.vx = -4; // se mueve hacia la izquierda
-    this.color = '#e94560';
+  update(speed) {
+    this.x -= speed;
   }
 
   draw() {
-    this.ctx.fillStyle = this.color;
+    this.ctx.fillStyle = '#c1121f';
     this.ctx.fillRect(this.x, this.y, this.w, this.h);
-
-    // Detalle visual: borde superior más brillante
-    this.ctx.fillStyle = '#ff6b81';
-    this.ctx.fillRect(this.x, this.y, this.w, 5);
   }
 
-  move() {
-    this.x += this.vx;
-  }
-
-  // Limpieza de memoria (Día 3)
   isOutOfScreen() {
     return this.x + this.w < 0;
   }

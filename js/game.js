@@ -3,136 +3,152 @@ class Game {
     this.canvas = document.getElementById('gameCanvas');
     this.ctx = this.canvas.getContext('2d');
 
-    // Instancias de todas las clases (Día 1: OOP)
     this.background = new Background(this.ctx);
     this.player = new Player(this.ctx);
     this.ui = new UI(this.ctx);
 
-    // Arrays de entidades (Día 3: spawn system)
+    this.keys = {};
     this.obstacles = [];
     this.coins = [];
-
-    // Contadores de spawn
-    this.obstacleCounter = 0;
-    this.obstacleRate = 120; // cada ~2s a 60fps
-    this.coinCounter = 0;
-    this.coinRate = 90; // cada ~1.5s a 60fps
-
-    // Puntuación y distancia
+    this.frame = 0;
     this.score = 0;
     this.distance = 0;
+    this.started = false;
+    this.gameOver = false;
+    this.paused = false;
 
-    // Estado del juego
-    this.isGameOver = false;
-    this.intervalId = null;
+    this.addEvents();
+  }
 
-    // Controls (Día 2: keyboard events)
-    this.handleKeyDown = (e) => {
-      if (e.code === 'Space') {
-        e.preventDefault();
-        if (this.isGameOver) {
-          this.restart();
-        } else {
-          this.player.isThrusting = true;
-        }
+  addEvents() {
+    window.addEventListener('keydown', (event) => {
+      this.keys[event.code] = true;
+
+      if (event.code === 'Space') {
+        event.preventDefault();
       }
-    };
 
-    this.handleKeyUp = (e) => {
-      if (e.code === 'Space') {
-        this.player.isThrusting = false;
+      if (event.code === 'KeyM' && !event.repeat && this.started && !this.gameOver) {
+        this.paused = !this.paused;
       }
-    };
 
-    // Soporte táctil y click (para móvil)
-    this.handlePointerDown = () => {
-      if (this.isGameOver) {
+      if (event.code === 'KeyS' && this.started && this.paused) {
+        this.goToMenu();
+      }
+
+      if (!this.started && event.code === 'Space') {
+        this.startGame();
+      }
+
+      if (this.gameOver && event.code === 'Space') {
         this.restart();
-      } else {
-        this.player.isThrusting = true;
-      }
-    };
-
-    this.handlePointerUp = () => {
-      this.player.isThrusting = false;
-    };
-  }
-
-  start() {
-    // Registrar eventos (Día 2)
-    document.addEventListener('keydown', this.handleKeyDown);
-    document.addEventListener('keyup', this.handleKeyUp);
-    this.canvas.addEventListener('pointerdown', this.handlePointerDown);
-    this.canvas.addEventListener('pointerup', this.handlePointerUp);
-
-    // Game loop con setInterval (Día 1 + Bonus: Async & Callbacks)
-    this.intervalId = setInterval(() => {
-      this.update();
-    }, 1000 / 60);
-  }
-
-  update() {
-    if (this.isGameOver) return;
-
-    // 1. Limpiar canvas (Día 1: clearRect)
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    // 2. Fondo
-    this.background.move();
-    this.background.draw();
-
-    // 3. Spawn de obstáculos y monedas (Día 3)
-    this.spawnObstacles();
-    this.spawnCoins();
-
-    // 4. Mover y dibujar obstáculos
-    this.obstacles.forEach(obs => { obs.move(); obs.draw(); });
-    this.coins.forEach(coin => { coin.move(); coin.draw(); });
-
-    // 5. Player
-    this.player.move();
-    this.player.draw();
-
-    // 6. Colisiones (Día 3: AABB)
-    this.checkCollisions();
-
-    // 7. Limpiar entidades fuera de pantalla (Día 3: memory cleanup)
-    this.cleanUp();
-
-    // 8. Actualizar distancia y dibujar UI
-    this.distance++;
-    this.ui.drawScore(this.score);
-    this.ui.drawDistance(Math.floor(this.distance / 10));
-  }
-
-  spawnObstacles() {
-    this.obstacleCounter++;
-    if (this.obstacleCounter >= this.obstacleRate) {
-      this.obstacles.push(new Obstacle(this.ctx));
-      this.obstacleCounter = 0;
-      // Aumentar dificultad progresivamente
-      if (this.obstacleRate > 60) this.obstacleRate -= 0.5;
-    }
-  }
-
-  spawnCoins() {
-    this.coinCounter++;
-    if (this.coinCounter >= this.coinRate) {
-      this.coins.push(new Coin(this.ctx));
-      this.coinCounter = 0;
-    }
-  }
-
-  checkCollisions() {
-    // Colisión con obstáculos → Game Over
-    this.obstacles.forEach(obs => {
-      if (this.player.collidesWith(obs)) {
-        this.gameOver();
       }
     });
 
-    // Colisión con monedas → sumar puntos
-    this.coins.forEach(coin => {
+    window.addEventListener('keyup', (event) => {
+      this.keys[event.code] = false;
+    });
+  }
+
+  start() {
+    this.ui.drawStartMenu();
+  }
+
+  startGame() {
+    this.started = true;
+    this.gameOver = false;
+    this.paused = false;
+    this.gameLoop();
+  }
+
+  restart() {
+    this.background = new Background(this.ctx);
+    this.player = new Player(this.ctx);
+    this.obstacles = [];
+    this.coins = [];
+    this.frame = 0;
+    this.score = 0;
+    this.distance = 0;
+    this.started = true;
+    this.gameOver = false;
+    this.paused = false;
+    this.gameLoop();
+  }
+
+  goToMenu() {
+    this.background = new Background(this.ctx);
+    this.player = new Player(this.ctx);
+    this.obstacles = [];
+    this.coins = [];
+    this.frame = 0;
+    this.score = 0;
+    this.distance = 0;
+    this.started = false;
+    this.gameOver = false;
+    this.paused = false;
+    this.keys = {};
+    this.ui.drawStartMenu();
+  }
+
+  gameLoop() {
+    this.update();
+    this.draw();
+
+    if (!this.gameOver && this.started) {
+      requestAnimationFrame(() => {
+        this.gameLoop();
+      });
+    }
+  }
+
+  update() {
+    if (!this.started || this.gameOver || this.paused) {
+      return;
+    }
+
+    this.frame++;
+    this.distance++;
+
+    const speed = 4 + Math.floor(this.distance / 500);
+
+    this.background.update(speed);
+    this.player.update(this.keys);
+
+    if (this.frame % 90 === 0) {
+      this.obstacles.push(new Obstacle(this.ctx));
+    }
+
+    if (this.frame % 130 === 0) {
+      this.coins.push(new Coin(this.ctx));
+    }
+
+    this.obstacles.forEach((obstacle) => {
+      obstacle.update(speed);
+    });
+
+    this.coins.forEach((coin) => {
+      coin.update(speed);
+    });
+
+    this.checkCollisions();
+
+    this.obstacles = this.obstacles.filter((obstacle) => {
+      return !obstacle.isOutOfScreen();
+    });
+
+    this.coins = this.coins.filter((coin) => {
+      return !coin.isOutOfScreen() && !coin.collected;
+    });
+  }
+
+  checkCollisions() {
+    this.obstacles.forEach((obstacle) => {
+      if (this.player.collidesWith(obstacle)) {
+        this.gameOver = true;
+      }
+    });
+
+    this.coins.forEach((coin) => {
       if (!coin.collected && this.player.collidesWith(coin)) {
         coin.collected = true;
         this.score++;
@@ -140,36 +156,34 @@ class Game {
     });
   }
 
-  cleanUp() {
-    // Inmutable con .filter() (Bonus: Value vs Reference)
-    this.obstacles = this.obstacles.filter(obs => !obs.isOutOfScreen());
-    this.coins = this.coins.filter(coin => !coin.isOutOfScreen() && !coin.collected);
-  }
-
-  gameOver() {
-    this.isGameOver = true;
-    clearInterval(this.intervalId);
+  draw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    if (!this.started) {
+      this.ui.drawStartMenu();
+      return;
+    }
+
     this.background.draw();
+
+    this.obstacles.forEach((obstacle) => {
+      obstacle.draw();
+    });
+
+    this.coins.forEach((coin) => {
+      coin.draw();
+    });
+
     this.player.draw();
-    this.ui.drawGameOver(this.score, Math.floor(this.distance / 10));
-  }
+    this.ui.drawScore(this.score, this.distance);
+    this.ui.drawPauseText();
 
-  restart() {
-    // Limpiar eventos anteriores
-    document.removeEventListener('keydown', this.handleKeyDown);
-    document.removeEventListener('keyup', this.handleKeyUp);
-    this.canvas.removeEventListener('pointerdown', this.handlePointerDown);
-    this.canvas.removeEventListener('pointerup', this.handlePointerUp);
+    if (this.gameOver) {
+      this.ui.drawGameOver(this.score, this.distance);
+    }
 
-    // Crear nueva instancia del juego
-    const newGame = new Game();
-    newGame.start();
-  }
-
-  stop() {
-    clearInterval(this.intervalId);
-    document.removeEventListener('keydown', this.handleKeyDown);
-    document.removeEventListener('keyup', this.handleKeyUp);
+    if (this.paused) {
+      this.ui.drawPauseMenu();
+    }
   }
 }
